@@ -1,0 +1,39 @@
+# Configuration file
+
+include $(HOME)/Config/Make.cf.common
+
+# Options =====================================================================
+
+#DEBUGGER = -g
+#DEBUGGER = -DDEBUG_ARRAY
+DEBUGGER = 
+
+# C++ to Fortran Interface ====================================================
+
+C_FTN_INTERFACE =
+#-DFTN_UNDERSCORE
+#C_FTN_INTERFACE = -DFTN_TWO_UNDERSCORES -DFTN_UNDERSCORE -DFTN_CAPS
+
+# Compilation =================================================================
+
+#FC       = f77
+#FC	 = gfortran
+FC       = ifort
+FFLAGS   = 
+CC       = c++
+#CC       = icc
+CFLAGS   = -O $(INCLUDE_DIRS) $(DEBUGGER) $(C_FTN_INTERFACE) -Wall
+C++C     = c++
+#C++C     = g++
+#C++C     = icc
+C++FLAGS = -O $(INCLUDE_DIRS) $(DEBUGGER) $(C_FTN_INTERFACE) -std=c++11 -Wall
+AR       = ar
+ARFLAGS  = -rUv
+RANLIB   = ranlib
+
+LDFLAGS = 
+LIBS    = -lm -lblas -llapack -llapacke
+#  -lg2c -lf2c
+#LIBS    = -L$(MKLROOT)/lib/intel64/ -lmkl_lapack95_lp64 -Wl,--start-group -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -Wl,--end-group -lpthread -lm -lc
+
+DEPENDFLAGS = $(INCLUDE_DIRS)

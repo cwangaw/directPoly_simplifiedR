@@ -1,0 +1,44 @@
+test/   	# dirName, output directory (preamble)
+
+### MESH PARAMETERS ###########################################################
+
+g			# meshTypet (quads, triangles, or general)
+8			# nVertices;
+5    	 		# nElements;
+{ $INCLUDE test/testMesh_vertices }	# mesh_vertices file
+{ $INCLUDE test/testMesh_elements } 	# mesh_elements file name
+
+$BEGIN_COMMENT
+q                	# meshType (quads, deviated, triangles, or general)
+0,1            		# xMin,xMax
+0,1            		# yMin,yMax 
+10,10            	# nx,ny
+0.1             	# distortion factor
+$END_COMMENT
+
+0.2      # remove small edges [0,0.5]
+
+### FINITE ELEMENTS ###########################################################
+
+5     	        # polynomial degree
+0                   # Use hybrid or H(div)-conforming element for mixed method 
+                    # (0 = hybrid, 1 = conforming)
+
+### ALGORITHM PARAMETERS ######################################################
+
+1         #quadrature rule refinement level
+
+### OUTPUT PARAMETERS ########################################################
+
+2			# Output DS solution (-1=omit, 0=none, 1=raw, 2=matlab)
+101,101              	# numPtsDS_x,numPtsDS_y, number of x,y points for matlab
+
+-1			# Output Mixed solution (-1=omit, 0=none, 1=raw, 2=matlab)
+101,101              	# numPtsMixed_x,numPtsMixed_y, number of x,y points for matlab
+
+2			# Mesh output format (0=none, 1=raw, 2=matlab)
+2			# DS space output format (0=none, 1=raw, 2=matlab)
+2			# DM space output format (0=none, 1=raw, 2=matlab)
+
+#MONITORING
+2                    	# Monitor code progress to level

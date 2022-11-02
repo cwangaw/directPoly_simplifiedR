@@ -1,0 +1,33 @@
+# Configuration file
+
+include $(HOME)/Config/Make.cf.common
+
+# Options =====================================================================
+
+#DEBUGGER = -g
+#DEBUGGER = -DDEBUG_ARRAY
+DEBUGGER = 
+
+# C++ to Fortran Interface ====================================================
+
+C_FTN_INTERFACE =
+#-DFTN_UNDERSCORE
+#C_FTN_INTERFACE = -DFTN_TWO_UNDERSCORES -DFTN_UNDERSCORE -DFTN_CAPS
+
+# Compilation =================================================================
+
+FC       = gfortran
+FFLAGS   = 
+CC       = gcc-11
+CFLAGS   = -O $(INCLUDE_DIRS) $(DEBUGGER) $(C_FTN_INTERFACE) -Wall
+C++C     = gcc-11
+C++FLAGS = -O $(INCLUDE_DIRS) $(DEBUGGER) $(C_FTN_INTERFACE) -std=c++11 -Wall -I/usr/local/Cellar/openblas/0.3.17/include -I/usr/local/Cellar/lapack/3.10.0/include
+AR       = ar
+ARFLAGS  = -rv
+RANLIB   = ranlib
+
+LDFLAGS =  
+LIBS    = -L/usr/local/lib/gcc/11/ -lstdc++ -lm -L/usr/local/Cellar/openblas/0.3.17/lib -L/usr/local/Cellar/lapack/3.10.0/lib -lcblas -llapack -llapacke
+#-llapacke
+#  -lg2c -lf2c
+DEPENDFLAGS = $(INCLUDE_DIRS)

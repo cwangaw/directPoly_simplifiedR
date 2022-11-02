@@ -1,0 +1,1 @@
+INCLUDE_DIRS = -I$(HOME) -I$(HOME)/Mesh -I$(HOME)/Reader -I$(HOME)/Utilities -I. -I/Users/arbogast/.local/include/
