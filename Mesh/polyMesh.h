@@ -14,6 +14,7 @@
 // Assume base objects: Point and Tensor1 (both two numbers)
 ////////////////////////////////////////////////////////////////////////////////
 
+
 #include "baseObjects.h"
 
 namespace polymesh {
@@ -207,6 +208,14 @@ namespace polymesh {
     void computeCenterOfTriangle(const OrientedEdge* e0, const OrientedEdge* e1,
 				 const OrientedEdge* e2, Point& center, bool& unique);
 
+    void computeCenterOfAnyTriangle(const OrientedEdge* e0, const OrientedEdge* e1,
+				 const OrientedEdge* e2, Point& center, bool& unique);
+
+    void computeCenterOfTriangle(const Point* vi0, const Point* vi1,
+                                  const Point* vj0, const Point* vj1,
+                                  const Point* vk0, const Point* vk1,
+                                  Point& center, bool& unique);
+
     void set_polyelement(int nGon, Edge** theEdges, int myIndex=-1, PolyMesh* myMesh=nullptr);
 
   public:
@@ -239,6 +248,8 @@ namespace polymesh {
     double maxRadius() const { return max_radius; }
     double diameter() const { return my_diameter; };
     double chunkParam();
+    std::vector<std::vector<Point>> partition();
+    Point center(std::vector<Point> vertices);
 
     bool isInElement(const Point& pt) const;
     bool isOnElementBoundary(const Point& pt) const;
@@ -386,4 +397,18 @@ namespace polymesh {
 
 };
 
+inline Tensor1 normal_two_points(const Point* v0, const Point* v1) {
+ Tensor1 tangent_of_this_line = *v1 - *v0;
+ tangent_of_this_line = tangent_of_this_line / tangent_of_this_line.norm();
+ return Tensor1(-1 * tangent_of_this_line[1], tangent_of_this_line[0]);
+}
+
+inline Tensor1 tangent_two_points(const Point* v0, const Point* v1) {
+  Tensor1 tangent_of_this_line = *v1 - *v0;
+  return tangent_of_this_line / tangent_of_this_line.norm();
+}
+
+inline double lambda_two_points(const Point* v0, const Point* v1, const Point* p) {
+ return -1 * (normal_two_points(v0,v1) * Tensor1(*p-*v0));
+}
 #endif

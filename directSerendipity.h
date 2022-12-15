@@ -205,6 +205,7 @@ namespace directserendipity {
   class DirectSerendipityFE 
   {
   private:
+    int power; // simplified R function is in C^power
     DirectSerendipity* my_ds_space;
     polymesh::PolyElement* my_poly_element;
 
@@ -240,6 +241,10 @@ namespace directserendipity {
     double projToEdge(int iEdge, const Point& p) const { return projToEdge(iEdge,p[0],p[1]); }
 
     //r_supp is 1 on e_i, 0 on e_j
+    void simplifiedR_supp(int i, int j, const Point& p, double& result, Tensor1& gradresult) const;
+    double simplifiedR_supp(int i, int j, const Point& p) const;
+    double simplifiedR_supp(int i, int j, double x, double y) const { return simplifiedR_supp(i, j, Point(x,y)); }  
+
     void r_supp(int i, int j, const Point& p, double& result, Tensor1& gradresult) const;
     double r_supp(int i, int j, const Point& p) const;
     double r_supp(int i, int j, double x, double y) const { return r_supp(i, j, Point(x,y)); }  
@@ -249,6 +254,11 @@ namespace directserendipity {
     double lambda_supp (int i, int j, const Point& p) const;
     double lambda_supp(int i, int j, double x, double y) const {
       return lambda_supp(i,j,Point(x,y)); }
+
+    void simplifiedPhi_k_l (int k, int l, const Point& p, double& result, Tensor1& gradresult) const;
+
+    double simplifiedPhi_k_l (int k, int l, const Point& p) const;
+    double simplifiedPhi_k_l (int i, int j, double x, double y) const { return simplifiedPhi_k_l(i, j, Point(x,y)); }
 
     void phi_k_l (int k, int l, const Point& p, double& result, Tensor1& gradresult) const;
 
@@ -446,6 +456,7 @@ namespace directserendipity {
   {
   private:
     int polynomial_degree;
+    int supp_smoothness;
     polymesh::PolyMesh* my_mesh;
     //DirectSerendipity my_high_order_ds_space;
 
@@ -462,21 +473,22 @@ namespace directserendipity {
     int* mesh_edge_to_first_node_index = nullptr; // first edge node index only
     int* mesh_element_to_first_node_index = nullptr; // first cell node index only
 
-    void set_directserendipity(int polyDeg, polymesh::PolyMesh* mesh);
+    void set_directserendipity(int polyDeg, int suppSmoo, polymesh::PolyMesh* mesh);
     
   public:
-    DirectSerendipity() : polynomial_degree(0), my_mesh(nullptr), num_nodes(0), the_ds_nodes(nullptr),
+    DirectSerendipity() : polynomial_degree(0), supp_smoothness(0), my_mesh(nullptr), num_nodes(0), the_ds_nodes(nullptr),
 			  the_node_type(nullptr), the_bc_type(nullptr),
 			  the_ds_elements(nullptr), map_j_array(nullptr),
 			  mesh_vertex_to_node_index(nullptr), mesh_edge_to_first_node_index(nullptr),
 			  mesh_element_to_first_node_index(nullptr) {};
-    DirectSerendipity(int polyDeg, polymesh::PolyMesh* mesh) {
-      set_directserendipity(polyDeg, mesh); };
+    DirectSerendipity(int polyDeg, int suppSmoo, polymesh::PolyMesh* mesh) {
+      set_directserendipity(polyDeg, suppSmoo, mesh); };
     ~DirectSerendipity();
 
-    void set(int polyDeg, polymesh::PolyMesh* mesh) { set_directserendipity(polyDeg, mesh); };
+    void set(int polyDeg, int suppSmoo, polymesh::PolyMesh* mesh) { set_directserendipity(polyDeg, suppSmoo, mesh); };
     
     int degPolyn() const { return polynomial_degree; };
+    int suppSmoothness() const { return supp_smoothness; };
     polymesh::PolyMesh* mesh() const { return my_mesh; };
     
     int nNodes() const { return num_nodes; };

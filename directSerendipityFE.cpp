@@ -27,6 +27,7 @@ void DirectSerendipityFE::
 
       num_vertices = element->nVertices();
       polynomial_degree = my_ds_space->degPolyn();
+      power = my_ds_space -> suppSmoothness();
       deg_cell_poly = polynomial_degree - num_vertices;
       num_cell_nodes = (deg_cell_poly >=0) ? (deg_cell_poly+2)*(deg_cell_poly+1)/2 : 0;
 	    num_nodes = num_vertices*polynomial_degree + num_cell_nodes;
@@ -40,7 +41,7 @@ void DirectSerendipityFE::
 	      if(one_element_mesh) delete one_element_mesh;
 	      one_element_mesh = new polymesh::PolyMesh(my_poly_element);
 	      if(high_order_ds_space) delete high_order_ds_space;
-	      high_order_ds_space = new DirectSerendipity(num_vertices-2,one_element_mesh);
+	      high_order_ds_space = new DirectSerendipity(num_vertices-2,power,one_element_mesh);
       }
 
       /*set up basis*/
@@ -187,6 +188,106 @@ const double* DirectSerendipityFE::get_result_of_coefficients(int i, int j) cons
   const double* pointer_to_begin_position= &x_vector_for_all.data()[begin_position];
   return pointer_to_begin_position;
 }
+
+//Simplified R functions
+void DirectSerendipityFE::simplifiedR_supp(int i, int j, const Point& p, double& result, Tensor1& gradresult) const {
+  OrientedEdge* e_i = my_poly_element->edgePtr(i);
+  OrientedEdge* e_j = my_poly_element->edgePtr(j);
+
+  double d_j = e_j -> lambda(p);
+  double d_i = e_i -> lambda(p);
+
+  
+  // Find j_c such that v_{j_c} is closer to e_i
+  Point* v_jc = my_poly_element->vertexPtr(j);
+  if (e_i -> lambda(*my_poly_element->vertexPtr(j-1+num_vertices)) < e_i->lambda(*v_jc)) {
+    v_jc = my_poly_element->vertexPtr(j-1+num_vertices);
+  }
+  double d_i_vjc = e_i -> lambda(*v_jc);
+
+  // Find i_c such that v_{i,c} is closer to e_j
+  Point* v_ic = my_poly_element->vertexPtr(i);
+  if (e_j -> lambda(*my_poly_element->vertexPtr(i-1+num_vertices)) < e_j->lambda(*v_ic)) {
+    v_ic = my_poly_element->vertexPtr(i-1+num_vertices);
+  }
+  double d_j_vic = e_j -> lambda(*v_ic);
+
+  double sRji = 1;
+  double sRij = 1;
+  Tensor1 dsRji(0,0);
+  Tensor1 dsRij(0,0);
+  // ScriptR_{j,i}
+  if (d_i <= d_i_vjc) {
+    sRji = 1 - pow( 1-d_i/d_i_vjc, power );
+    dsRji(0) = e_i -> dLambda(0) * power * pow( 1-d_i/d_i_vjc , power-1 ) / d_i_vjc;
+    dsRji(1) = e_i -> dLambda(1) * power * pow( 1-d_i/d_i_vjc , power-1 ) / d_i_vjc;
+  }
+
+  // ScriptR_{i,j}
+  if (d_j  <= d_j_vic) { 
+    sRij = 1 - pow( 1-d_j/d_j_vic, power );
+    dsRij(0) = e_j -> dLambda(0) * power * pow( 1-d_j/d_j_vic, power-1 ) / d_j_vic;
+    dsRij(1) = e_j -> dLambda(1) * power * pow( 1-d_j/d_j_vic, power-1 ) / d_j_vic;
+  }
+
+  result = 0.5 * (1-(sRji-sRij));
+  gradresult(0) = -0.5 * ( dsRji(0)-dsRij(0) );
+  gradresult(1) = -0.5 * ( dsRji(1)-dsRij(1) );
+}
+
+double DirectSerendipityFE::simplifiedR_supp(int i, int j, const Point& p) const {
+  double result;
+  Tensor1 gradresult;
+  simplifiedR_supp(i, j, p, result, gradresult);
+  return result;
+}
+
+void DirectSerendipityFE::simplifiedPhi_k_l (int k, int l, const Point& p, double& result, Tensor1& gradresult) const {
+  assert( fabs(k-l) >= 2 && fabs(k-l) <= num_vertices-2 );
+  //Define and initialize variable for grad
+  int num_term = num_vertices+2;
+  std::vector<double> term_grad_coef_part(num_term,1);
+  std::vector<Tensor1> term_grad(num_term, Tensor1(0,0));
+  result = 1;
+  gradresult = Tensor1(0,0);
+  double new_part; Tensor1 new_grad;
+
+  for (int m=0; m<num_vertices; m++) {
+    if (m==k || m==l) { continue; } 
+    else {
+      new_part = my_poly_element->edgePtr(m)->lambda(p);
+      result *= new_part;
+      for (int n = 0; n < num_term; n++) { term_grad_coef_part[n] *= (n==m) ? 1 : new_part; }
+      term_grad[m] = my_poly_element->edgePtr(m)->dLambda(); 
+    }
+  }
+  double lambda_supp_result; Tensor1 dlambda_supp_result;
+  lambda_supp(k,l,p,lambda_supp_result,dlambda_supp_result);
+  new_part = pow(lambda_supp_result,polynomial_degree-num_vertices+2);
+  result *= new_part;
+  for (int n = 0; n < num_term; n++) { term_grad_coef_part[n] *= (n==num_vertices) ? 1 : new_part; }
+  if ((polynomial_degree-num_vertices+2)!=0) {
+    term_grad[num_vertices] = ((polynomial_degree-num_vertices+2) * pow(lambda_supp_result,polynomial_degree-num_vertices+1)) * dlambda_supp_result;
+  }
+
+
+  simplifiedR_supp(k,l,p,new_part,new_grad);
+  result *= new_part;
+  for (int n = 0; n < num_term; n++) { term_grad_coef_part[n] *= (n==num_vertices+1) ? 1 : simplifiedR_supp(k,l,p); }
+  term_grad[num_vertices+1] = new_grad;
+
+  for (int i=0; i<num_term; i++) {
+    gradresult += term_grad_coef_part[i] * term_grad[i];
+  }
+}
+
+double DirectSerendipityFE::simplifiedPhi_k_l (int k, int l, const Point& p) const {
+  double result;
+  Tensor1 gradresult;
+  simplifiedPhi_k_l(k, l, p, result, gradresult);
+  return result;
+}
+
 
 //Supplemental functions
 
@@ -754,7 +855,7 @@ void DirectSerendipityFE::initBasis(const Point* pt, int num_pts) {
 
               for (int row = polynomial_degree - num_vertices + 2; row < matrix_dim; row++) {
                 int index_for_beta = (nEdge+row-polynomial_degree+num_vertices) % num_vertices;
-                phi_cellNode_beta_part += *(x+row) * phi_k_l(nEdge,index_for_beta,*cellNodePtr(k));
+                phi_cellNode_beta_part += *(x+row) * simplifiedPhi_k_l(nEdge,index_for_beta,*cellNodePtr(k));
               }
               phi_e_at_c[k] = phi_cellNode_alpha_part + phi_cellNode_beta_part;
             }
@@ -801,11 +902,11 @@ void DirectSerendipityFE::initBasis(const Point* pt, int num_pts) {
             //BETA PART
             for (int row = polynomial_degree - num_vertices + 2; row < matrix_dim; row++) {
               int index_for_beta = (nEdge+row-polynomial_degree+num_vertices) % num_vertices;
-              if (pt_index == 0) { phi_beta_part += *(x+row) * phi_k_l(nEdge,index_for_beta,*edgeNodePtr(nEdge,jNode)); }
-              double phi_k_l_result; Tensor1 dphi_k_l_result;
-              phi_k_l(nEdge,index_for_beta,pt[pt_index],phi_k_l_result,dphi_k_l_result);
-              phi_pt_beta_part += *(x+row) * phi_k_l_result;
-              gradresult += *(x+row) * dphi_k_l_result;  
+              if (pt_index == 0) { phi_beta_part += *(x+row) * simplifiedPhi_k_l(nEdge,index_for_beta,*edgeNodePtr(nEdge,jNode)); }
+              double simplifiedPhi_k_l_result; Tensor1 dsimplifiedPhi_k_l_result;
+              simplifiedPhi_k_l(nEdge,index_for_beta,pt[pt_index],simplifiedPhi_k_l_result,dsimplifiedPhi_k_l_result);
+              phi_pt_beta_part += *(x+row) * simplifiedPhi_k_l_result;
+              gradresult += *(x+row) * dsimplifiedPhi_k_l_result;  
             }
     
             phi_pt = phi_pt_alpha_part + phi_pt_beta_part;
@@ -946,15 +1047,15 @@ void DirectSerendipityFE::initBasisLowOrderQuad(const Point* pt, int num_pts) {
 
     for (int iEdge = 0 ; iEdge < num_vertices; iEdge++) { 
       phi_e_normalize[iEdge] = lambda(iEdge+1,*edgeNodePtr(iEdge,0)) * lambda(iEdge+num_vertices-1, *edgeNodePtr(iEdge,0)) 
-                              * r_supp(iEdge, iEdge+2, *edgeNodePtr(iEdge,0));
+                              * simplifiedR_supp(iEdge, iEdge+2, *edgeNodePtr(iEdge,0));
 
       phi_v_normalize[iEdge] = lambda(iEdge+2,*vertexNodePtr(iEdge)) * lambda(iEdge+3,*vertexNodePtr(iEdge));
 
       for (int k = iEdge; k <= iEdge+1; k++) {
           double eval_phi_e_k = lambda(k+1,*vertexNodePtr(iEdge)) * lambda(k+num_vertices-1, *vertexNodePtr(iEdge)) 
-                        * r_supp(k,k+2,*vertexNodePtr(iEdge)) 
+                        * simplifiedR_supp(k,k+2,*vertexNodePtr(iEdge)) 
                         / (lambda(k+1,*edgeNodePtr(k%num_vertices,0)) * lambda(k+num_vertices-1, *edgeNodePtr(k%num_vertices,0)) 
-                        * r_supp(k,k+2,*edgeNodePtr(k%num_vertices,0)));
+                        * simplifiedR_supp(k,k+2,*edgeNodePtr(k%num_vertices,0)));
           phi_v_normalize[iEdge] -= lambda(iEdge+2,*edgeNodePtr(k%num_vertices,0)) * lambda(iEdge+3,*edgeNodePtr(k%num_vertices,0)) * eval_phi_e_k;
         }
 
@@ -967,7 +1068,7 @@ void DirectSerendipityFE::initBasisLowOrderQuad(const Point* pt, int num_pts) {
         int global_index = pt_index * num_nodes + num_vertices + iEdge;
 
         double rSupp = 0; Tensor1 dRSupp(0,0);
-        r_supp(iEdge, iEdge+2, pt[pt_index], rSupp, dRSupp);
+        simplifiedR_supp(iEdge, iEdge+2, pt[pt_index], rSupp, dRSupp);
 
         double value = lambda(iEdge+1,pt[pt_index]) * lambda(iEdge+num_vertices-1, pt[pt_index]) * rSupp;
         Tensor1 gradvalue = dLambda(iEdge+1) * lambda(iEdge+num_vertices-1, pt[pt_index]) * rSupp 

@@ -46,7 +46,8 @@ namespace directserendipity {
     int dim_supp; // H / C
 
     int num_vertices; // Redundant with my_poly_element
-    int polynomial_degree; // Redundant with my_ds_space
+    int polynomial_degree; // Redundant with my_dm_space
+    int supp_smoothness; // Redundant with my_dm_space
     Point ref_origin;
 
     // We take curl of r+1 degree basis functions
@@ -465,6 +466,7 @@ namespace directserendipity {
   {
   private:
     int polynomial_degree;
+    int supp_smoothness;
     polymesh::PolyMesh* my_mesh;
     bool my_conformity;
     //DirectSerendipity my_high_order_ds_space;
@@ -488,25 +490,26 @@ namespace directserendipity {
     int mixed_dofs_full = 0;
     int mixed_dofs_reduced = 0;
 
-    void set_directmixed(int polyDeg, polymesh::PolyMesh* mesh, bool conforming);
+    void set_directmixed(int polyDeg, int suppSmoo, polymesh::PolyMesh* mesh, bool conforming);
     
   public:
-    DirectMixed() : polynomial_degree(-1), my_mesh(nullptr), my_conformity(false), num_edges(0), 
+    DirectMixed() : polynomial_degree(-1), supp_smoothness(0), my_mesh(nullptr), my_conformity(false), num_edges(0), 
                     num_interior_edges(0), the_dm_edges(nullptr), the_bc_type(nullptr), 
                     interior_edge_indexing(nullptr), global_edge_indexing(nullptr), 
                     the_dg_elements(nullptr),
                     dg_elem_first_to_global_dof_full(nullptr),
                     dg_elem_first_to_global_dof_reduced(nullptr), 
                     dg_dofs_full(0), dg_dofs_reduced(0) { };
-    DirectMixed(int polyDeg, polymesh::PolyMesh* mesh, bool conforming) {
-      set_directmixed(polyDeg, mesh, conforming); };
+    DirectMixed(int polyDeg, int suppSmoo, polymesh::PolyMesh* mesh, bool conforming) {
+      set_directmixed(polyDeg, suppSmoo, mesh, conforming); };
     ~DirectMixed();
 
-    void set(int polyDeg, polymesh::PolyMesh* mesh, bool conforming) { set_directmixed(polyDeg, mesh, conforming); };
+    void set(int polyDeg, int suppSmoo, polymesh::PolyMesh* mesh, bool conforming) { set_directmixed(polyDeg, suppSmoo, mesh, conforming); };
     
     int nEdges() const { return num_edges; };
     int nInteriorEdges() const { return num_interior_edges; };
     int degPolyn() const { return polynomial_degree; };
+    int suppSmoothness() const { return supp_smoothness; };
     polymesh::PolyMesh* mesh() const { return my_mesh; };
     polymesh::PolyElement* elementPtr(int i) const {return my_mesh->elementPtr(i); };
 
@@ -584,18 +587,18 @@ namespace directserendipity {
     int dg_edge_dofs = 0; // Here we also include DoFs on the boundary
     int dg_int_edge_dofs = 0;
 
-    void set_directmixedhybrid(int polyDeg, polymesh::PolyMesh* mesh);
+    void set_directmixedhybrid(int polyDeg, int suppSmoo, polymesh::PolyMesh* mesh);
     
   public:
     DirectMixedHybrid(const DirectMixed& dm) {
-      set_directmixedhybrid(dm.degPolyn(), dm.mesh());
+      set_directmixedhybrid(dm.degPolyn(), dm.suppSmoothness(), dm.mesh());
     }
-    DirectMixedHybrid(int polyDeg, polymesh::PolyMesh* mesh) {
-      set_directmixedhybrid(polyDeg, mesh); };
+    DirectMixedHybrid(int polyDeg, int suppSmoo, polymesh::PolyMesh* mesh) {
+      set_directmixedhybrid(polyDeg, suppSmoo, mesh); };
     ~DirectMixedHybrid();
 
-    void set(int polyDeg, polymesh::PolyMesh* mesh) {
-      set_directmixedhybrid(polyDeg, mesh); };
+    void set(int polyDeg, int suppSmoo, polymesh::PolyMesh* mesh) {
+      set_directmixedhybrid(polyDeg, suppSmoo, mesh); };
 
     DirectMixedHybridFE* MixedElementPtr(int i) const { return &the_dm_elements[i]; };
     DirectEdgeDGFE* DGEdgePtr(int i) const { return &the_dg_edge_elements[i]; };
@@ -644,19 +647,19 @@ namespace directserendipity {
     int** loc_to_glob_full = nullptr;
     int** loc_to_glob_reduced = nullptr;
     
-    void set_directmixedconf(int polyDeg, polymesh::PolyMesh* mesh);
+    void set_directmixedconf(int polyDeg, int suppSmoo, polymesh::PolyMesh* mesh);
     
     public:
     DirectMixedConf(const DirectMixed& dm) {
-      set_directmixedconf(dm.degPolyn(), dm.mesh());
+      set_directmixedconf(dm.degPolyn(), dm.suppSmoothness(), dm.mesh());
     }
-    DirectMixedConf(int polyDeg, polymesh::PolyMesh* mesh) {
-      set_directmixedconf(polyDeg, mesh);
+    DirectMixedConf(int polyDeg,  int suppSmoo, polymesh::PolyMesh* mesh) {
+      set_directmixedconf(polyDeg, suppSmoo, mesh);
     }
     ~DirectMixedConf();
 
-    void set(int polyDeg, polymesh::PolyMesh* mesh) {
-      set_directmixedconf(polyDeg, mesh);
+    void set(int polyDeg, int suppSmoo, polymesh::PolyMesh* mesh) {
+      set_directmixedconf(polyDeg, suppSmoo, mesh);
     }
 
     DirectMixedConfFE* MixedElementPtr(int i) const { return &the_dm_elements[i]; };

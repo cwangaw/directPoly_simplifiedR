@@ -69,8 +69,21 @@ void PolyQuadrature::set_rule(int desired_dop, int refinement_level) {
 void PolyQuadrature::set_element(polymesh::PolyElement* element) {
   my_element = element;
   if(!element) return;
-  
-  int num_triangles = my_element->nVertices();
+
+  std::vector<std::vector<Point>> partition_vertices = my_element -> partition();
+
+  int num_triangles = 0;
+
+  for (unsigned int i=0; i<partition_vertices.size(); i++) {
+    num_triangles += partition_vertices[i].size();
+    /*    std::cout << "element" << i << std::endl;
+    for (unsigned int j=0; j<partition_vertices[i].size(); j++) {
+      std::cout << partition_vertices[i][j] << "  ";
+    }
+    std::cout << std::endl;*/
+
+  }
+
   num_pts = num_triangles*num_pts_ref;
 
   // Quadrature points and weights
@@ -81,22 +94,29 @@ void PolyQuadrature::set_element(polymesh::PolyElement* element) {
   if(my_wts) delete[] my_wts;
   my_wts = new double[num_pts];
 
-  // Triangles from center of polygon
-  Point center = my_element->center();
+  int index = 0;
 
-  for(int i=0; i<num_triangles; i++) {
-    // v0 = (0,0)
-    Point v1(*(my_element->vertexPtr(i))); v1 -= center;
-    Point v2(*(my_element->vertexPtr((i+1) % num_triangles))); v2 -= center;
 
-    Tensor2 mappingMatrix(v1[0], v2[0], v1[1], v2[1]);
-    double jacobian = std::abs(mappingMatrix.determinant())/2;
+  for (unsigned int nElement = 0; nElement < partition_vertices.size(); nElement++ ) {
+    int num_triangles_this_element = partition_vertices[nElement].size();
+    // Triangles from center of polygon
+    Point center = my_element->center(partition_vertices[nElement]);
+    for(int i=0; i<num_triangles_this_element; i++) {
+      // v0 = (0,0)
+      Point v1(partition_vertices[nElement][i]); v1 -= center;
+      Point v2(partition_vertices[nElement][(i+1) % num_triangles_this_element]); v2 -= center;
 
-    int kk = i*num_pts_ref;
-    for(int j=0; j<num_pts_ref; j++) {
-      mappingMatrix.mult(my_pts_ref[j], my_pts[kk+j]);
-      my_pts[kk+j] += center;
-      my_wts[kk+j] = my_wts_ref[j]*jacobian;
+      Tensor2 mappingMatrix(v1[0], v2[0], v1[1], v2[1]);
+      double jacobian = std::abs(mappingMatrix.determinant())/2;
+
+      int kk = index*num_pts_ref;
+      for(int j=0; j<num_pts_ref; j++) {
+        mappingMatrix.mult(my_pts_ref[j], my_pts[kk+j]);
+        my_pts[kk+j] += center;
+        my_wts[kk+j] = my_wts_ref[j]*jacobian;
+      }
+
+      index++;
     }
   }
 }

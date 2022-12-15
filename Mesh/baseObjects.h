@@ -11,7 +11,7 @@
 // Class Point and Tensor1
 ////////////////////////////////////////////////////////////////////////////////
 
-static const double baseobjects_eps = 1e-4;
+static const double baseobjects_eps = 1e-14;
 
 class Point {
  protected:

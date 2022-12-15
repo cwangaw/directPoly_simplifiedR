@@ -89,7 +89,7 @@ int MixedPDE::solve_hybrid(Monitor& monitor) {
     fileName += "mesh_e4";
     s_mesh.write_matlab(fileName);
 
-    DirectMixedHybrid s_dmSpace(8,&s_mesh);
+    DirectMixedHybrid s_dmSpace(8,parameterDataPtr()->dmSpace.suppSmoothness(),&s_mesh);
     fileName = parameterDataPtr()->directory_name;
     fileName += "dmSpace_e4";
     s_dmSpace.write_matlab(fileName);

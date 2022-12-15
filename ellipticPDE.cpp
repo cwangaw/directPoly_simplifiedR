@@ -244,7 +244,7 @@ int EllipticPDE::solve(Monitor& monitor) {
     fileName += "mesh_e4";
     s_mesh.write_matlab(fileName);
 
-    DirectSerendipity s_dsSpace(8,&s_mesh);
+    DirectSerendipity s_dsSpace(8,parameterDataPtr()->dsSpace.suppSmoothness(),&s_mesh);
     fileName = parameterDataPtr()->directory_name;
     fileName += "dsSpace_e4";
     s_dsSpace.write_matlab(fileName);
@@ -284,8 +284,8 @@ int EllipticPDE::solve(Monitor& monitor) {
       double y = parameterDataPtr()->dsSpace.nodePtr(i)->val(1);
 
       // Change the coefficient of the basis function corresponding
-      // to the node (1/3,0) to 1
-      if (abs(x-(double)1/3)<1e-6 && abs(y-0)<1e-6) u[i]=1;
+      // to the node (1,0.5) to 1
+      if (abs(x-(double)1)<1e-6 && abs(y-(double)1/2)<1e-6) u[i]=1;
     }
     
     monitor(1,"Write Array");
@@ -301,7 +301,7 @@ int EllipticPDE::solve(Monitor& monitor) {
 
   if(false) {
     monitor(1,"Test Quadrature Rules");
-    testPolyQuadrature(&(parameterDataPtr()->mesh),1e-6);
+    testPolyQuadrature(&(parameterDataPtr()->mesh),5);
     return 0;
   }
   
@@ -331,7 +331,7 @@ int EllipticPDE::solve(Monitor& monitor) {
   double* rhs = rhs_vector.data();
 
   // quadrature points
-  polyquadrature::PolyQuadrature quadRule(13,param.refinement_level);
+  polyquadrature::PolyQuadrature quadRule(param.dsSpace.degPolyn()+2,param.refinement_level);
 
   monitor(1,"Matrix and RHS Assembly"); ////////////////////////////////////////
 

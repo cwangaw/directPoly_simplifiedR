@@ -9,40 +9,41 @@ g
 { [ 1 2 3 4 5 ] } 	# mesh_elements
 $END_COMMENT
 
-# $BEGIN_COMMENT
-g
-650    	   # nVertices;
-324     	   # nElements;
-{ $INCLUDE testingMeshes/SSPM/SSPM_324_650/Node.txt }    # mesh_vertices file
-{ $INCLUDE testingMeshes/SSPM/SSPM_324_650/Element.txt } # mesh_elements file name
-# $END_COMMENT
-
 $BEGIN_COMMENT
-q		# meshType (quads, deviated, triangles, or general)
+g
+74    	   # nVertices;
+36     	   # nElements;
+{ $INCLUDE testingMeshes/Pattern/Pattern_36_74/Node.txt }    # mesh_vertices file
+{ $INCLUDE testingMeshes/Pattern/Pattern_36_74/Element.txt } # mesh_elements file name
+$END_COMMENT
+
+# $BEGIN_COMMENT
+d		# meshType (quads, deviated, triangles, or general)
 0,1        	# xMin,xMax
 0,1        	# yMin,yMax 
-22,22  	# nx,ny
+12,12  	# nx,ny
 0.2         # distortion factor
-$END_COMMENT
+# $END_COMMENT
 
 0.2      # remove small edges [0,0.5]
 
 ### FINITE ELEMENTS ###########################################################
 
-2     	        # polynomial degree
+4     	        # polynomial degree
 0               # Use hybrid or H(div)-conforming element for mixed method 
                 # (0 = hybrid, 1 = conforming)
+1               # supplemental functions, as a piecewise polynomial, is in H^p
 
 ### ALGORITHM PARAMETERS ######################################################
 
-1         #quadrature rule refinement level
+0         #quadrature rule refinement level
 
 ### OUTPUT PARAMETERS ########################################################
 
--1			# Output DS solution (-1=omit, 0=none, 1=raw, 2=matlab)
+2			# Output DS solution (-1=omit, 0=none, 1=raw, 2=matlab)
 101,101              	# numPtsDS_x,numPtsDS_y, number of x,y points for matlab
 
-2			# Output Mixed solution (-1=omit, 0=none, 1=raw, 2=matlab)
+-1			# Output Mixed solution (-1=omit, 0=none, 1=raw, 2=matlab)
 101,101              	# numPtsMixed_x,numPtsMixed_y, number of x,y points for matlab
 
 2			# Mesh output format (0=none, 1=raw, 2=matlab)

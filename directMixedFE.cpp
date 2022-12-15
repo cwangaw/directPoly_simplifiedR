@@ -26,6 +26,7 @@ void DirectMixedFE::
 
   num_vertices = element->nVertices();
   polynomial_degree = my_dm_space->degPolyn();
+  supp_smoothness = my_dm_space->suppSmoothness();
   ref_origin = Point(my_poly_element->vertexPtr(num_vertices-1)->val(0), my_poly_element->vertexPtr(num_vertices-1)->val(1));
 
   if (polynomial_degree >= num_vertices - 3) {
@@ -173,7 +174,7 @@ void DirectMixedHybridFE::initBasis(const Point* pt, int num_pts) {
   if(one_element_mesh) delete one_element_mesh;
 	one_element_mesh = new polymesh::PolyMesh(my_poly_element);
 	if(high_order_ds_space) delete high_order_ds_space;
-  high_order_ds_space = new DirectSerendipity(polynomial_degree+1,one_element_mesh);
+  high_order_ds_space = new DirectSerendipity(polynomial_degree+1, supp_smoothness, one_element_mesh);
   high_order_ds_space->finiteElementPtr(0)->initBasis(pt, num_pts);
   int higher_order = high_order_ds_space->finiteElementPtr(0)->polynomial_degree;
 
@@ -220,7 +221,7 @@ void DirectMixedHybridFE::initBasis(const Point* pt, int num_pts) {
     else {
       // Get supplemental functions for big r
 
-      // Initialization of variables for calling phi_k_l
+      // Initialization of variables for calling simplifiedPhi_k_l
       Tensor1 gradresult_k_l,gradresult_l_k;
       double result_of_no_use;
 
@@ -228,10 +229,10 @@ void DirectMixedHybridFE::initBasis(const Point* pt, int num_pts) {
         for (int l=k+2; l <= num_vertices-1; l++) {
           if (k==0 && l==num_vertices-1) { continue; }
           for (int pt_index = 0; pt_index < num_pts; pt_index++) {
-            // Update gradresult to evaluate phi_k_l at pt[pt_index]
-            high_order_ds_space->finiteElementPtr(0)->phi_k_l(k,l,pt[pt_index],result_of_no_use,gradresult_k_l);
-            high_order_ds_space->finiteElementPtr(0)->phi_k_l(l,k,pt[pt_index],result_of_no_use,gradresult_l_k);
-            // Store value of curl of phi_k_l
+            // Update gradresult to evaluate simplifiedPhi_k_l at pt[pt_index]
+            high_order_ds_space->finiteElementPtr(0)->simplifiedPhi_k_l(k,l,pt[pt_index],result_of_no_use,gradresult_k_l);
+            high_order_ds_space->finiteElementPtr(0)->simplifiedPhi_k_l(l,k,pt[pt_index],result_of_no_use,gradresult_l_k);
+            // Store value of curl of simplifiedPhi_k_l
             //result.set(gradresult_k_l.val(1),-gradresult_k_l.val(0));
             result.set(gradresult_k_l.val(1)-gradresult_l_k.val(1),-gradresult_k_l.val(0)+gradresult_l_k.val(0));
             v_value_n[pt_index * dim_v + curr_index] = result;
@@ -378,7 +379,7 @@ void DirectMixedConfFE::initBasis(const Point* pt, int num_pts) {
   if(one_element_mesh) delete one_element_mesh;
 	one_element_mesh = new polymesh::PolyMesh(my_poly_element);
 	if(high_order_ds_space) delete high_order_ds_space;
-  high_order_ds_space = new DirectSerendipity(polynomial_degree+1,one_element_mesh);
+  high_order_ds_space = new DirectSerendipity(polynomial_degree+1, supp_smoothness, one_element_mesh);
   high_order_ds_space->finiteElementPtr(0)->initBasis(pt, num_pts);
   int higher_order = high_order_ds_space->finiteElementPtr(0)->polynomial_degree;
 

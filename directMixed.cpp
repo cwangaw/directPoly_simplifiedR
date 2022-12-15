@@ -20,8 +20,9 @@ using namespace polyquadrature;
 ////////////////////////////////////////////////////////////////////////////////
 // Class DirectMixed
 
-void DirectMixed::set_directmixed(int polyDeg, polymesh::PolyMesh* mesh, bool conforming) {
+void DirectMixed::set_directmixed(int polyDeg, int suppSmoo, polymesh::PolyMesh* mesh, bool conforming) {
   polynomial_degree = polyDeg;
+  supp_smoothness = suppSmoo;
   my_mesh = mesh;
   my_conformity = conforming;
   num_edges = my_mesh -> nEdges();
@@ -206,8 +207,8 @@ int DirectMixed::write_matlab(std::string& filename) const {
 ////////////////////////////////////////////////////////////////////////////////
 // Class DirectMixedHybrid
 
-void DirectMixedHybrid::set_directmixedhybrid(int polyDeg, polymesh::PolyMesh* mesh) {
-  set_directmixed(polyDeg, mesh, false);
+void DirectMixedHybrid::set_directmixedhybrid(int polyDeg, int suppSmoo, polymesh::PolyMesh* mesh) {
+  set_directmixed(polyDeg, suppSmoo, mesh, false);
   // ALLOCATE ELEMENTS
 
 
@@ -332,8 +333,8 @@ int DirectMixedHybrid::write_raw(std::string& filename) const {
 ////////////////////////////////////////////////////////////////////////////////
 // Class DirectMixedConf
 
-void DirectMixedConf::set_directmixedconf(int polyDeg, polymesh::PolyMesh* mesh) {
-  set_directmixed(polyDeg, mesh, true);
+void DirectMixedConf::set_directmixedconf(int polyDeg,int suppSmoo,  polymesh::PolyMesh* mesh) {
+  set_directmixed(polyDeg, suppSmoo, mesh, true);
 
   int num_cell_dofs = 0;
   

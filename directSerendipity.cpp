@@ -850,8 +850,9 @@ int DirectSerendipityArray::write_matlab_mesh_one_over_chunk(std::string& filena
 ////////////////////////////////////////////////////////////////////////////////
 // Class DirectSerendipity
 
-void DirectSerendipity::set_directserendipity(int polyDeg, PolyMesh* mesh) {
+void DirectSerendipity::set_directserendipity(int polyDeg, int suppSmoo, PolyMesh* mesh) {
   polynomial_degree = polyDeg;
+  supp_smoothness = suppSmoo;
   my_mesh = mesh;
 
   // ALLOCATE NODES AND ELEMENTS

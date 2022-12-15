@@ -338,8 +338,12 @@ int ParameterData::read() {
   ERRCHK(readScalar(conforming));
   if(conforming < 0) conforming = 1;
 
-  dsSpace.set(polynomial_degree,&mesh);
-  dmSpace.set(polynomial_degree,&mesh,(bool)conforming);
+  ERRCHK(readScalar(supp_smoothness));
+  if(supp_smoothness < 1) supp_smoothness = 1;
+  
+
+  dsSpace.set(polynomial_degree, supp_smoothness, &mesh);
+  dmSpace.set(polynomial_degree, supp_smoothness, &mesh, (bool)conforming);
   
   // ALGORITHM PARAMETERS
   ERRCHK(readScalar(refinement_level));

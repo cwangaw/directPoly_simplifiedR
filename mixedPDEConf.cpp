@@ -36,7 +36,7 @@ int MixedPDE::solve_conf(Monitor& monitor) {
     fileName += "mesh_e4";
     s_mesh.write_matlab(fileName);
 
-    DirectMixed s_dmSpace(8,&s_mesh,false);
+    DirectMixed s_dmSpace(8,parameterDataPtr()->dmSpace.suppSmoothness(),&s_mesh,false);
     fileName = parameterDataPtr()->directory_name;
     fileName += "dmSpace_e4";
     s_dmSpace.write_matlab(fileName);
