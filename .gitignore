@@ -5,3 +5,4 @@ Mesh/mesh_x86_64.a
 Reader/reader_x86_64.a
 directpoly.x86_64
 directpoly_x86_64.a
+.vscode/settings.json

@@ -991,7 +991,7 @@ void DirectSerendipityFE::initBasis(const Point* pt, int num_pts) {
           // If you want vertex basis functions linear on each edge,
           // just uncomment the following block
           
-          /*
+          
           if (k == i) {
             linear_correction = lambda((i+num_vertices-1)%num_vertices,*edgeNodePtr(k % num_vertices,l))
                                   /lambda((i+num_vertices-1)%num_vertices,*vertexNodePtr(i % num_vertices));
@@ -999,7 +999,7 @@ void DirectSerendipityFE::initBasis(const Point* pt, int num_pts) {
             linear_correction = lambda((i+2)%num_vertices,*edgeNodePtr(k % num_vertices,l))
                                   /lambda((i+2)%num_vertices,*vertexNodePtr(i % num_vertices));
           }  
-          */
+          
           phi_pt += linear_correction * phi *  value_n[global_index];
           gradresult += linear_correction * phi * gradvalue_n[global_index]; 
         }
