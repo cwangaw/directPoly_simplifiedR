@@ -219,6 +219,9 @@ namespace directserendipity {
     std::vector<Node*> the_edge_nodes; // grouped by edge (i) to corresponding vertex (i)
     std::vector<Node*> the_cell_nodes; // ordered lower left to right, bottom to top
 
+
+    std::vector<std::vector<Point>> partition_lines;
+
     // Evaluation storage
     int num_eval_pts;
     double* value_n = nullptr;

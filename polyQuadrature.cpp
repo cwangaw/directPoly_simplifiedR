@@ -76,11 +76,14 @@ void PolyQuadrature::set_element(polymesh::PolyElement* element) {
 
   for (unsigned int i=0; i<partition_vertices.size(); i++) {
     num_triangles += partition_vertices[i].size();
-    /*    std::cout << "element" << i << std::endl;
+    /*
+           std::cout << "element" << i << std::endl;
     for (unsigned int j=0; j<partition_vertices[i].size(); j++) {
       std::cout << partition_vertices[i][j] << "  ";
     }
-    std::cout << std::endl;*/
+    std::cout << std::endl;
+    */
+
 
   }
 
