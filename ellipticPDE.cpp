@@ -301,7 +301,7 @@ int EllipticPDE::solve(Monitor& monitor) {
 
   if(false) {
     monitor(1,"Test Quadrature Rules");
-    testPolyQuadrature(&(parameterDataPtr()->mesh),5);
+    testPolyQuadrature(&(parameterDataPtr()->mesh),6);
     return 0;
   }
   

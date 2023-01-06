@@ -200,6 +200,8 @@ namespace polymesh {
 
     PolyMesh* my_mesh;
     int my_mesh_index;
+
+    double minDistFromEdgeMidPt();
     
     bool isConnected();
     bool isConvexCounterclockwise();
@@ -248,6 +250,7 @@ namespace polymesh {
     double maxRadius() const { return max_radius; }
     double diameter() const { return my_diameter; };
     double chunkParam();
+    std::vector<std::vector<Point>> partitionLines();
     std::vector<std::vector<Point>> partition();
     Point center(std::vector<Point> vertices);
 

@@ -24,6 +24,7 @@ void DirectSerendipityFE::
 				 const std::vector<Node*>& cellNodes) {
       my_ds_space = dsSpace;
       my_poly_element = element;
+      partition_lines = my_poly_element->partitionLines();
 
       num_vertices = element->nVertices();
       polynomial_degree = my_ds_space->degPolyn();
@@ -191,48 +192,58 @@ const double* DirectSerendipityFE::get_result_of_coefficients(int i, int j) cons
 
 //Simplified R functions
 void DirectSerendipityFE::simplifiedR_supp(int i, int j, const Point& p, double& result, Tensor1& gradresult) const {
+  // It is 1 on e_i, 0 on e_j
   OrientedEdge* e_i = my_poly_element->edgePtr(i);
   OrientedEdge* e_j = my_poly_element->edgePtr(j);
+
+  // First test if they are parallel to each other, if so,
+  // directly output the correspoing linear polynomial
+
+  if (fabs(e_i->tangent() * e_j->normal()) < 1e-8) {
+    double r_simple = (e_i -> lambda(p) - e_j -> lambda(p)) / e_i -> lambda(*my_poly_element->vertexPtr(j));
+    result = 0.5 * (1-r_simple);
+    
+    gradresult(0) = -0.5 * (e_i -> dLambda(0) - e_j ->dLambda(0)) / e_i -> lambda(*my_poly_element->vertexPtr(j));
+    gradresult(1) = -0.5 * (e_i -> dLambda(1) - e_j ->dLambda(1)) / e_i -> lambda(*my_poly_element->vertexPtr(j));
+
+    return;
+  }
+
+  
 
   double d_j = e_j -> lambda(p);
   double d_i = e_i -> lambda(p);
 
-  
-  // Find j_c such that v_{j_c} is closer to e_i
-  Point* v_jc = my_poly_element->vertexPtr(j);
-  if (e_i -> lambda(*my_poly_element->vertexPtr(j-1+num_vertices)) < e_i->lambda(*v_jc)) {
-    v_jc = my_poly_element->vertexPtr(j-1+num_vertices);
-  }
-  double d_i_vjc = e_i -> lambda(*v_jc);
+  // d_li is the distance from l_i to e_i
+  double d_li = e_i -> lambda(partition_lines[i % num_vertices][0]);
+  // d_ljc is the distance from l_i to e_i
+  double d_lj = e_j -> lambda(partition_lines[j % num_vertices][0]);
 
-  // Find i_c such that v_{i,c} is closer to e_j
-  Point* v_ic = my_poly_element->vertexPtr(i);
-  if (e_j -> lambda(*my_poly_element->vertexPtr(i-1+num_vertices)) < e_j->lambda(*v_ic)) {
-    v_ic = my_poly_element->vertexPtr(i-1+num_vertices);
-  }
-  double d_j_vic = e_j -> lambda(*v_ic);
+  
 
   double sRji = 1;
   double sRij = 1;
   Tensor1 dsRji(0,0);
   Tensor1 dsRij(0,0);
   // ScriptR_{j,i}
-  if (d_i <= d_i_vjc) {
-    sRji = 1 - pow( 1-d_i/d_i_vjc, power );
-    dsRji(0) = e_i -> dLambda(0) * power * pow( 1-d_i/d_i_vjc , power-1 ) / d_i_vjc;
-    dsRji(1) = e_i -> dLambda(1) * power * pow( 1-d_i/d_i_vjc , power-1 ) / d_i_vjc;
+  if (d_i <= d_li) {
+    sRji = 1 - pow( 1-d_i/d_li, power );
+    dsRji(0) = e_i -> dLambda(0) * power * pow( 1-d_i/d_li , power-1 ) / d_li;
+    dsRji(1) = e_i -> dLambda(1) * power * pow( 1-d_i/d_li , power-1 ) / d_li;
   }
 
   // ScriptR_{i,j}
-  if (d_j  <= d_j_vic) { 
-    sRij = 1 - pow( 1-d_j/d_j_vic, power );
-    dsRij(0) = e_j -> dLambda(0) * power * pow( 1-d_j/d_j_vic, power-1 ) / d_j_vic;
-    dsRij(1) = e_j -> dLambda(1) * power * pow( 1-d_j/d_j_vic, power-1 ) / d_j_vic;
+  if (d_j  <= d_lj) { 
+    sRij = 1 - pow( 1-d_j/d_lj, power );
+    dsRij(0) = e_j -> dLambda(0) * power * pow( 1-d_j/d_lj, power-1 ) / d_lj;
+    dsRij(1) = e_j -> dLambda(1) * power * pow( 1-d_j/d_lj, power-1 ) / d_lj;
   }
 
   result = 0.5 * (1-(sRji-sRij));
   gradresult(0) = -0.5 * ( dsRji(0)-dsRij(0) );
   gradresult(1) = -0.5 * ( dsRji(1)-dsRij(1) );
+
+  return;
 }
 
 double DirectSerendipityFE::simplifiedR_supp(int i, int j, const Point& p) const {
@@ -991,7 +1002,7 @@ void DirectSerendipityFE::initBasis(const Point* pt, int num_pts) {
           // If you want vertex basis functions linear on each edge,
           // just uncomment the following block
           
-          /*
+          
           if (k == i) {
             linear_correction = lambda((i+num_vertices-1)%num_vertices,*edgeNodePtr(k % num_vertices,l))
                                   /lambda((i+num_vertices-1)%num_vertices,*vertexNodePtr(i % num_vertices));
@@ -999,7 +1010,7 @@ void DirectSerendipityFE::initBasis(const Point* pt, int num_pts) {
             linear_correction = lambda((i+2)%num_vertices,*edgeNodePtr(k % num_vertices,l))
                                   /lambda((i+2)%num_vertices,*vertexNodePtr(i % num_vertices));
           }  
-          */
+          
           phi_pt += linear_correction * phi *  value_n[global_index];
           gradresult += linear_correction * phi * gradvalue_n[global_index]; 
         }

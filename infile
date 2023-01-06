@@ -9,27 +9,27 @@ g
 { [ 1 2 3 4 5 ] } 	# mesh_elements
 $END_COMMENT
 
-$BEGIN_COMMENT
+# $BEGIN_COMMENT
 g
 74    	   # nVertices;
 36     	   # nElements;
-{ $INCLUDE testingMeshes/Pattern/Pattern_36_74/Node.txt }    # mesh_vertices file
-{ $INCLUDE testingMeshes/Pattern/Pattern_36_74/Element.txt } # mesh_elements file name
-$END_COMMENT
-
-# $BEGIN_COMMENT
-d		# meshType (quads, deviated, triangles, or general)
-0,1        	# xMin,xMax
-0,1        	# yMin,yMax 
-12,12  	# nx,ny
-0.2         # distortion factor
+{ $INCLUDE testingMeshes/SSPM/SSPM_36_74/Node.txt }    # mesh_vertices file
+{ $INCLUDE testingMeshes/SSPM/SSPM_36_74/Element.txt } # mesh_elements file name
 # $END_COMMENT
 
-0.2      # remove small edges [0,0.5]
+$BEGIN_COMMENT
+q		# meshType (quads, deviated, triangles, or general)
+0,1        	# xMin,xMax
+0,1        	# yMin,yMax 
+16,16  	# nx,ny
+0.2         # distortion factor
+$END_COMMENT
+
+0      # remove small edges [0,0.5]
 
 ### FINITE ELEMENTS ###########################################################
 
-4     	        # polynomial degree
+5     	        # polynomial degree
 0               # Use hybrid or H(div)-conforming element for mixed method 
                 # (0 = hybrid, 1 = conforming)
 1               # supplemental functions, as a piecewise polynomial, is in H^p
