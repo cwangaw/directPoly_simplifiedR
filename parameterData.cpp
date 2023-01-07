@@ -1,4 +1,5 @@
 #include <fstream>
+#include <algorithm> 
 
 #include "debug.h"
 #include "parameterData.h"
@@ -333,7 +334,7 @@ int ParameterData::read() {
   // FINITE ELEMENTS
 
   ERRCHK(readScalar(polynomial_degree));
-  if(polynomial_degree < 1) polynomial_degree = 1;
+  if(polynomial_degree < 0) polynomial_degree = 0;
 
   ERRCHK(readScalar(conforming));
   if(conforming < 0) conforming = 1;
@@ -342,9 +343,9 @@ int ParameterData::read() {
   if(supp_smoothness < 1) supp_smoothness = 1;
   
 
-  dsSpace.set(polynomial_degree, supp_smoothness, &mesh);
+  dsSpace.set(std::max(1,polynomial_degree), supp_smoothness, &mesh);
   dmSpace.set(polynomial_degree, supp_smoothness, &mesh, (bool)conforming);
-  
+
   // ALGORITHM PARAMETERS
   ERRCHK(readScalar(refinement_level));
   if(refinement_level < 0) refinement_level = 0 ;

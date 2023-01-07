@@ -217,7 +217,7 @@ int MixedPDE::solve_hybrid(Monitor& monitor) {
   // Note that we update quadRule in each iElement loop
   // But we define quadEdgeRule for all edges at once
 
-  polyquadrature::PolyQuadrature quadRule(13,param.refinement_level);
+  polyquadrature::PolyQuadrature quadRule(param.dsSpace.degPolyn()+3,param.refinement_level);
 
   std::vector<polyquadrature::PolyEdgeQuadrature> quadEdgeRule(dmSpace.nEdges());
 
@@ -885,11 +885,11 @@ int MixedPDE::solve_hybrid(Monitor& monitor) {
 
     std::cout << "  === Conforming Errors ===  " << std::endl;
     std::cout << "  L_2 Error full:      " << conf_l2Error_f << std::endl;
-    std::cout << "  L_2 Error reduced:      " << conf_l2Error_f << std::endl;
+     if (param.polynomial_degree > 0) { std::cout << "  L_2 Error reduced:      " << conf_l2Error_f << std::endl; }
     std::cout << "  L_1 Error full:      " << conf_l1Error_f << std::endl;
-    std::cout << "  L_1 Error reduced:      " << conf_l1Error_r << std::endl;
+     if (param.polynomial_degree > 0) { std::cout << "  L_1 Error reduced:      " << conf_l1Error_r << std::endl; }
     std::cout << "  L_inf Error full:      " << conf_linfError_f << std::endl;
-    std::cout << "  L_inf Error reduced:      " << conf_linfError_r << std::endl;
+     if (param.polynomial_degree > 0) { std::cout << "  L_inf Error reduced:      " << conf_linfError_r << std::endl; }
     std::cout << std::endl;
 
     std::ofstream fout23("test/conf_vec_full.txt");
@@ -930,21 +930,21 @@ int MixedPDE::solve_hybrid(Monitor& monitor) {
     std::cout << "  Average Chunkiness Parameter:  " << averageChunk << std::endl;
     std::cout << "  === p ===  " << std::endl;
     std::cout << "  L_2 Error full:      " << l2Error_f << std::endl;
-    std::cout << "  L_2 Error reduced:      " << l2Error_r << std::endl;
+     if (param.polynomial_degree > 0) { std::cout << "  L_2 Error reduced:      " << l2Error_r << std::endl; }
     std::cout << "  Relative L_2 Error full:      " << l2Error_f/l2Norm_f << std::endl;
-    std::cout << "  Relative L_2 Error reduced:      " << l2Error_r/l2Norm_r << std::endl;
+    if (param.polynomial_degree > 0) {   std::cout << "  Relative L_2 Error reduced:      " << l2Error_r/l2Norm_r << std::endl; }
     std::cout << std::endl;
     std::cout << "  === u ===  " << std::endl;
     std::cout << "  L_2 Error full:      " << l2UError_f << std::endl;
-    std::cout << "  L_2 Error reduced:      " << l2UError_r << std::endl;
+     if (param.polynomial_degree > 0) { std::cout << "  L_2 Error reduced:      " << l2UError_r << std::endl; }
     std::cout << "  Relative L_2 Error full:      " << l2UError_f/l2UNorm_f << std::endl;
-    std::cout << "  Relative L_2 Error reduced:      " << l2UError_r/l2UNorm_r << std::endl;
+    if (param.polynomial_degree > 0) { std::cout << "  Relative L_2 Error reduced:      " << l2UError_r/l2UNorm_r << std::endl; }
     std::cout << std::endl;
     std::cout << "  === div u ===  " << std::endl;
     std::cout << "  L_2 Error full:      " << l2DivUError_f << std::endl;
-    std::cout << "  L_2 Error reduced:      " << l2DivUError_r << std::endl;
+     if (param.polynomial_degree > 0) { std::cout << "  L_2 Error reduced:      " << l2DivUError_r << std::endl; }
     std::cout << "  Relative L_2 Error full:      " << l2DivUError_f/l2DivUNorm_f << std::endl;
-    std::cout << "  Relative L_2 Error reduced:      " << l2DivUError_r/l2DivUNorm_r << std::endl;
+    if (param.polynomial_degree > 0) { std::cout << "  Relative L_2 Error reduced:      " << l2DivUError_r/l2DivUNorm_r << std::endl; }
     std::cout << std::endl;
 
 
