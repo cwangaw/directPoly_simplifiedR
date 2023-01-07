@@ -505,7 +505,7 @@ std::vector<std::vector<Point>> PolyElement::partitionLines() {
   std::vector<std::vector<Point>> lines;
   lines.clear();
 
- double min_dist = minDistFromEdgeMidPt();
+ //double min_dist = minDistFromEdgeMidPt();
 
   // For each edge e_i, we give the intersection of l_i ( the line with min_dist to e_i ),
   // with e_{i-1} and e_{i+1}
@@ -513,12 +513,12 @@ std::vector<std::vector<Point>> PolyElement::partitionLines() {
   for (int i = 0; i < num_vertices; i++) {
     // Find the minimum distance from the trisection point of neiboring edge to this edge
 
-    /*
+    
     double min_dist = edgePtr(i) -> lambda(*vertexPtr(i-2+num_vertices)) / 3;
     if ( edgePtr(i) -> lambda(*vertexPtr(i+1)) / 3 < min_dist) {
       min_dist = edgePtr(i) -> lambda(*vertexPtr(i+1)) / 3;
     }    
-    */
+    
 
     
 
