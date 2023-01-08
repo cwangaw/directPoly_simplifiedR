@@ -666,9 +666,27 @@ void DirectSerendipityFE::initBasis(const Point* pt, int num_pts) {
       for (int pt_index = 0; pt_index < num_pts; pt_index++) {
         double phi_pt = high_order_ds_space->finiteElementPtr(0)->vertexBasis(i,pt_index);
         Tensor1 gradresult = high_order_ds_space->finiteElementPtr(0)->gradVertexBasis(i,pt_index);
+        // If the higher order vertex basis functions are zero at each edge node,
+        // we need to uncomment the following block to make the code work
+        /*
+        for (int nEdge = i; nEdge<=(i+1); nEdge++) {
+          for (int sNode=0; sNode<higher_order-1; sNode++) {
+              if (pt_index == 0) {
+                Point sNodePosition(*high_order_ds_space->finiteElementPtr(0)->edgeNodePtr(nEdge%num_vertices,sNode));
+                coef_v[(nEdge-i)*(higher_order-1)+sNode] = lagrange_v(i,nEdge%num_vertices,sNodePosition);
+              }
+              double phi_pt_high_order = high_order_ds_space->finiteElementPtr(0)->edgeBasis(nEdge%num_vertices,sNode,pt_index);
+              phi_pt += coef_v[(nEdge-i)*(higher_order-1)+sNode] * phi_pt_high_order;
+              Tensor1 grad_high_order = high_order_ds_space->finiteElementPtr(0)->gradEdgeBasis(nEdge%num_vertices,sNode,pt_index);
+              //gradresult -= coef_v[(nEdge-i)*(higher_order-1)+sNode] * grad_high_order;
+              gradresult += coef_v[(nEdge-i)*(higher_order-1)+sNode] * grad_high_order;
+            }
+          }
+          */
         value_n[pt_index*num_nodes+i] = phi_pt;
         gradvalue_n[pt_index*num_nodes+i] = gradresult;
       }
+      
     }
 
     // Update phi_{e,nEdge,jNode}
@@ -999,10 +1017,8 @@ void DirectSerendipityFE::initBasis(const Point* pt, int num_pts) {
           // Add value that make vertex basis functions linear on each edge
           double linear_correction = 0;
 
-          // If you want vertex basis functions linear on each edge,
-          // just uncomment the following block
-          
-          
+          // If you want vertex basis functions zero on each edge node,
+          // just comment the following block
           if (k == i) {
             linear_correction = lambda((i+num_vertices-1)%num_vertices,*edgeNodePtr(k % num_vertices,l))
                                   /lambda((i+num_vertices-1)%num_vertices,*vertexNodePtr(i % num_vertices));

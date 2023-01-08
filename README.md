@@ -15,7 +15,7 @@ make
 ```
 
 ## Direct Serendipity Space
-Nodal basis functions as defined in the paper on each elements are constructed in `directSerendipityFE.cpp` and assembled in `ellipticPDE.cpp` to serve as global basis functions. However, some modifications could be made easily in `directSerendipityFE.cpp`:
+Nodal basis functions as defined in the paper on each elements are constructed in `directSerendipityFE.cpp` and assembled in `ellipticPDE.cpp` to serve as global basis functions, except for that the vertex basis functions are linear on each edge instead of zero at all the edge nodes. However, some modifications could be made easily in `directSerendipityFE.cpp`:
 
 1. If you do not want to remove cell degrees of freedom, find the following lines at three places and comment them out.
 
@@ -28,13 +28,11 @@ for (int k=0; k<nCellNodes(); k++) {
 }
 ```
 
-2. If you want to make vertex nodal basis functions linear at each edge, find the following lines and uncomment the block.
+2. If you want to make vertex nodal basis functions zero at all the edge nodes, first find the following block in `directSerendipityFE.cpp` and comment the block.
 
 ```cpp
-// If you want vertex basis functions linear on each edge,
-// just uncomment the following block
-
-/*
+// If you want vertex basis functions zero on each edge node,
+// just comment the following block
 if (k == i) {
 linear_correction = lambda((i+num_vertices-1)%num_vertices,*edgeNodePtr(k % num_vertices,l))
                         /lambda((i+num_vertices-1)%num_vertices,*vertexNodePtr(i % num_vertices));
@@ -42,8 +40,30 @@ linear_correction = lambda((i+num_vertices-1)%num_vertices,*edgeNodePtr(k % num_
 linear_correction = lambda((i+2)%num_vertices,*edgeNodePtr(k % num_vertices,l))
                         /lambda((i+2)%num_vertices,*vertexNodePtr(i % num_vertices));
 }  
-*/
+
 ```  
+
+Then find the following blocks in `directSerendipityFE.cpp`, and uncomment the block.
+
+```cpp
+// If the higher order vertex basis functions are zero at each edge node,
+// we need to uncomment the following block to make the code work
+/*
+for (int nEdge = i; nEdge<=(i+1); nEdge++) {
+    for (int sNode=0; sNode<higher_order-1; sNode++) {
+        if (pt_index == 0) {
+        Point sNodePosition(*high_order_ds_space->finiteElementPtr(0)->edgeNodePtr(nEdge%num_vertices,sNode));
+        coef_v[(nEdge-i)*(higher_order-1)+sNode] = lagrange_v(i,nEdge%num_vertices,sNodePosition);
+        }
+        double phi_pt_high_order = high_order_ds_space->finiteElementPtr(0)->edgeBasis(nEdge%num_vertices,sNode,pt_index);
+        phi_pt += coef_v[(nEdge-i)*(higher_order-1)+sNode] * phi_pt_high_order;
+        Tensor1 grad_high_order = high_order_ds_space->finiteElementPtr(0)->gradEdgeBasis(nEdge%num_vertices,sNode,pt_index);
+        //gradresult -= coef_v[(nEdge-i)*(higher_order-1)+sNode] * grad_high_order;
+        gradresult += coef_v[(nEdge-i)*(higher_order-1)+sNode] * grad_high_order;
+    }
+    }
+*/
+```
 
 ## Direct Mixed Space
 You can use either hybrid mixed method or H(div)-conforming mixed spaces by setting the corresponding input in `infile`.  
