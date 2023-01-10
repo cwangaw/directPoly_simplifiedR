@@ -390,7 +390,7 @@ void DirectMixedConfFE::initBasis(const Point* pt, int num_pts) {
   //                                           //
   ///////////////////////////////////////////////
 
-  if (polynomial_degree >= num_vertices - 3) {
+  if (polynomial_degree >= num_vertices - 1) {
     for (int i = 0; i < high_order_ds_space->finiteElementPtr(0)->nCellNodes(); i++) {
       for (int pt_index = 0; pt_index < num_pts; pt_index++) {
         result.set(high_order_ds_space->finiteElementPtr(0)->gradCellBasis(i,pt_index).val(1), 

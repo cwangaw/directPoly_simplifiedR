@@ -513,15 +513,10 @@ std::vector<std::vector<Point>> PolyElement::partitionLines() {
   for (int i = 0; i < num_vertices; i++) {
     // Find the minimum distance from the trisection point of neiboring edge to this edge
 
-    
     double min_dist = edgePtr(i) -> lambda(*vertexPtr(i-2+num_vertices)) / 3;
     if ( edgePtr(i) -> lambda(*vertexPtr(i+1)) / 3 < min_dist) {
       min_dist = edgePtr(i) -> lambda(*vertexPtr(i+1)) / 3;
     }    
-    
-
-    
-
 
     Point p0 = *vertexPtr(i-1+num_vertices) + ( -1 * min_dist / (edgePtr(i-1+num_vertices)->tangent() * edgePtr(i)-> normal()) ) * edgePtr( i-1+num_vertices )->tangent();
     Point p1 = *vertexPtr(i) + ( -1 * min_dist / (edgePtr(i+1)->tangent() * edgePtr(i)->normal()) ) * edgePtr(i+1)->tangent();

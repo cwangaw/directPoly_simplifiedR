@@ -213,8 +213,15 @@ namespace directserendipity {
 
 
     // Get dimension of cell and xPo part
-    int dimCellBasis() { return max( 0, ((polynomial_degree - num_vertices + 3)
-                            * (polynomial_degree - num_vertices + 2)) / 2); };
+    int dimCellBasis() {
+      if (polynomial_degree - num_vertices + 2 > 0) {
+        return ((polynomial_degree - num_vertices + 3)
+                            * (polynomial_degree - num_vertices + 2)) / 2;
+      } else {
+        return 0;
+      }
+    }
+    
     int dimPolyBasis(char type) { return (type == 'f')? (dimXPoFull()-1):(dimXPoReduced()-1); };
 
 
