@@ -1,5 +1,5 @@
 # directPoly
-This is a demonstration code for the paper Direct Serendipity and Mixed Finite Elements on Convex Polygons.
+This is a demonstration code for the paper A Practical Improvement of Direct Serendipity Spaces on Convex Polygons.
 
 ## Authors
 - [Todd Arbogast](arbogast@ices.utexas.edu)
@@ -15,7 +15,9 @@ make
 ```
 
 ## Direct Serendipity Space
-Nodal basis functions as defined in the paper on each elements are constructed in `directSerendipityFE.cpp` and assembled in `ellipticPDE.cpp` to serve as global basis functions. However, in `directSerendipityFE.cpp`, if you do not want to remove cell degrees of freedom, find the following lines at three places and comment them out.
+Nodal basis functions with simplified supplemental functions described in the paper taking the partition corresponding to trisection points are constructed in `directSerendipityFE.cpp` and assembled in `ellipticPDE.cpp` to serve as global basis functions. However, several changes can be made. 
+
+1. If you do not want to remove cell degrees of freedom, find the following lines at three places and comment them out in `directSerendipityFE.cpp`.
 
 ```cpp
 //Deduct value at interior nodes if needed
@@ -24,6 +26,21 @@ for (int k=0; k<nCellNodes(); k++) {
     phi_pt -= phi_e_at_c[k] * value_n[k + num_vertices*polynomial_degree + pt_index*num_nodes];
     gradresult -= phi_e_at_c[k] * gradvalue_n[k + num_vertices*polynomial_degree + pt_index*num_nodes];
 }
+```
+
+2. If you want to use the partition corresonding to the midpoints of edge, find the file `Mesh/polyMesh.cpp`, and uncomment the following line in the file.
+
+```cpp
+// double min_dist = minDistFromEdgeMidPt();
+```
+
+Then comment the following block in the file.
+
+```cpp
+double min_dist = edgePtr(i) -> lambda(*vertexPtr(i-2+num_vertices)) / 3;
+if ( edgePtr(i) -> lambda(*vertexPtr(i+1)) / 3 < min_dist) {
+    min_dist = edgePtr(i) -> lambda(*vertexPtr(i+1)) / 3;
+}    
 ```
 
 ## Direct Mixed Space
